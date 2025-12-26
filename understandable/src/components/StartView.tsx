@@ -28,7 +28,7 @@ interface StartViewProps {
     onStart: (topic: string) => void;
 }
 
-export default function StartView({ onStart }: StartViewProps) {
+export function StartView({ onStart }: StartViewProps) {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -41,7 +41,8 @@ export default function StartView({ onStart }: StartViewProps) {
     };
 
     const onExampleTopicClick = (topic: string) => {
-        console.log(topic);
+        form.setValue('topic', topic);
+        form.handleSubmit(onSubmit)();
     };
 
     return (
@@ -120,8 +121,6 @@ export default function StartView({ onStart }: StartViewProps) {
                     </div>
                 </div>
 
-                {/* Footer */}
-                {/* <p className="text-center text-xs text-muted-foreground">No account needed.</p> */}
             </div>
         </div>
     );

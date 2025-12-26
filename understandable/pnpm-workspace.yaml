@@ -1,5 +1,9 @@
 packages:
-    - .
+  - .
+
 ignoredBuiltDependencies:
-    - sharp
-    - unrs-resolver
+  - sharp
+  - unrs-resolver
+
+onlyBuiltDependencies:
+  - speaker
