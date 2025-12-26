@@ -1,5 +1,3 @@
-import { Modality } from '@google/genai';
-
 export interface GeminiMessage {
     serverContent?: {
         modelTurn?: {
