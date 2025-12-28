@@ -15,9 +15,14 @@ export class AudioPlayer {
     };
     private playbackAnalyser: AnalyserNode | null = null;
     private onAnalyserChange?: (analyser: AnalyserNode | null) => void;
+    private gainNode: GainNode;
+    private readonly VOLUME = 0.9; // Slightly below 1.0 to prevent clipping
 
     constructor(audioContext: AudioContext) {
         this.audioContext = audioContext;
+        this.gainNode = audioContext.createGain();
+        this.gainNode.gain.value = this.VOLUME;
+        this.gainNode.connect(audioContext.destination);
     }
 
     setAnalyserCallback(callback: (analyser: AnalyserNode | null) => void) {
@@ -61,7 +66,7 @@ export class AudioPlayer {
 
             const analyser = this.createPlaybackAnalyser();
             source.connect(analyser);
-            analyser.connect(this.audioContext.destination);
+            analyser.connect(this.gainNode);
 
             this.playbackAnalyser = analyser;
             this.onAnalyserChange?.(analyser);

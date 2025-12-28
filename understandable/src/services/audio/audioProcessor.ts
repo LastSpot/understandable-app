@@ -95,14 +95,16 @@ export function createAudioBuffer(
     const channelData = audioBuffer.getChannelData(0);
 
     if (targetSampleRate === sourceSampleRate) {
+        // No resampling needed
         const copyLength = Math.min(pcmData.length, frameCount);
         for (let i = 0; i < copyLength; i++) {
-            channelData[i] = pcmData[i] / AUDIO_CONSTANTS.PCM_MAX_VALUE;
+            channelData[i] = Math.max(-1, Math.min(1, pcmData[i] / AUDIO_CONSTANTS.PCM_MAX_VALUE));
         }
         for (let i = copyLength; i < frameCount; i++) {
             channelData[i] = 0;
         }
     } else {
+        // Resample using linear interpolation
         const ratio = sourceSampleRate / targetSampleRate;
         for (let i = 0; i < frameCount; i++) {
             const srcIndex = i * ratio;
@@ -115,13 +117,12 @@ export function createAudioBuffer(
             }
 
             const t = srcIndex - srcIndexFloor;
-            const sample1 = pcmData[srcIndexFloor] / AUDIO_CONSTANTS.PCM_MAX_VALUE;
-            const sample2 =
-                srcIndexCeil < pcmData.length
-                    ? pcmData[srcIndexCeil] / AUDIO_CONSTANTS.PCM_MAX_VALUE
-                    : sample1;
+            const sample1 = Math.max(-1, Math.min(1, pcmData[srcIndexFloor] / AUDIO_CONSTANTS.PCM_MAX_VALUE));
+            const sample2 = srcIndexCeil < pcmData.length
+                ? Math.max(-1, Math.min(1, pcmData[srcIndexCeil] / AUDIO_CONSTANTS.PCM_MAX_VALUE))
+                : sample1;
 
-            channelData[i] = Math.max(-1, Math.min(1, sample1 * (1 - t) + sample2 * t));
+            channelData[i] = sample1 * (1 - t) + sample2 * t;
         }
     }
 

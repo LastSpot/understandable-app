@@ -2,7 +2,7 @@
 
 A live voice AI conversation app that tests whether you truly understand a concept by having you explain it to a curious 5-year-old listener powered by Google Gemini Live API.
 
-> "If you can't explain it to a 5-year-old, you don't understand it yourself." - Albert Einstein
+> "If you can't explain it to a 6-year-old, you don't understand it yourself." - Albert Einstein
 
 ## Features
 

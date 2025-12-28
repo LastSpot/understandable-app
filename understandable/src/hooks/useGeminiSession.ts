@@ -23,6 +23,13 @@ export function useGeminiSession(
     }, [onAudioReceived]);
 
     const connect = useCallback(async () => {
+        // Disconnect existing client if any
+        if (clientRef.current) {
+            clientRef.current.disconnect();
+            clientRef.current = null;
+            setIsConnected(false);
+        }
+
         const client = new GeminiClient();
         clientRef.current = client;
 

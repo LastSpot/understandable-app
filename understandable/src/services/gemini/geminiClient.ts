@@ -28,19 +28,34 @@ export class GeminiClient {
                         apiVersion: GEMINI_CONFIG.apiVersion,
                     });
 
+                    const config = {
+                        responseModalities: [...GEMINI_CONFIG.responseModalities],
+                        systemInstruction: GEMINI_CONFIG.systemInstruction,
+                        temperature: GEMINI_CONFIG.temperature,
+                        interruptionSettings: GEMINI_CONFIG.interruptionSettings,
+                        vadConfig: GEMINI_CONFIG.vadConfig,
+                        speechConfig: GEMINI_CONFIG.speechConfig,
+                    } as Parameters<typeof ai.live.connect>[0]['config'] & {
+                        interruptionSettings: typeof GEMINI_CONFIG.interruptionSettings;
+                        vadConfig: typeof GEMINI_CONFIG.vadConfig;
+                        speechConfig: typeof GEMINI_CONFIG.speechConfig;
+                    };
+
+                    logger.debug('Connecting to Gemini Live with config:', {
+                        model: GEMINI_CONFIG.model,
+                        systemInstruction:
+                            GEMINI_CONFIG.systemInstruction.substring(0, 100) + '...',
+                        temperature: config.temperature,
+                        interruptionSettings: config.interruptionSettings,
+                        vadConfig: config.vadConfig,
+                        responseDelay: config.vadConfig?.responseDelay,
+                        silenceThreshold: config.vadConfig?.silenceDurationThreshold,
+                    });
+
                     ai.live
                         .connect({
                             model: GEMINI_CONFIG.model,
-                            config: {
-                                responseModalities: [...GEMINI_CONFIG.responseModalities],
-                                systemInstruction: GEMINI_CONFIG.systemInstruction,
-                                temperature: GEMINI_CONFIG.temperature,
-                                interruptionSettings: GEMINI_CONFIG.interruptionSettings,
-                                vadConfig: GEMINI_CONFIG.vadConfig,
-                            } as Parameters<typeof ai.live.connect>[0]['config'] & {
-                                interruptionSettings: typeof GEMINI_CONFIG.interruptionSettings;
-                                vadConfig: typeof GEMINI_CONFIG.vadConfig;
-                            },
+                            config,
                             callbacks: {
                                 onopen: () => {
                                     logger.debug('Gemini Live: opened');
@@ -52,7 +67,13 @@ export class GeminiClient {
                                     logger.debug('Gemini Live message received:', message);
                                     const audioData = this.parseAudioData(message);
                                     if (audioData) {
+                                        logger.debug(
+                                            'Audio data parsed successfully, length:',
+                                            audioData.length
+                                        );
                                         callbacks.onAudioReceived?.(audioData);
+                                    } else {
+                                        logger.debug('No audio data found in message');
                                     }
                                 },
                                 onerror: (e: ErrorEvent) => {

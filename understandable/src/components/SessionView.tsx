@@ -41,12 +41,13 @@ export function SessionView({ topic, onEnd, onTimeUp, isTimeUp }: SessionViewPro
 
     useEffect(() => {
         const handleAudioReceived = (base64Audio: string) => {
-            if (geminiSessionRef.current.isConnected) {
+            // Don't send audio when timer is up (modal is shown)
+            if (!isTimeUp && geminiSessionRef.current.isConnected) {
                 geminiSessionRef.current.sendAudio(base64Audio);
             }
         };
         audioSessionRef.current.setOnAudioReceived(handleAudioReceived);
-    }, []);
+    }, [isTimeUp]);
 
     useEffect(() => {
         const handleGeminiAudioReceived = (audioData: string) => {
@@ -78,6 +79,21 @@ export function SessionView({ topic, onEnd, onTimeUp, isTimeUp }: SessionViewPro
     }, [audioSession.playbackAnalyser, audioSession.micAnalyser, audioSession]);
 
     useTimer(hasStarted && !isTimeUp, onTimeUp);
+
+    // Reconnect websocket when timer resets (user clicks "Try again")
+    useEffect(() => {
+        if (!isTimeUp && hasStarted && !geminiSession.isConnected) {
+            logger.debug('Reconnecting websocket after timer reset');
+            geminiSession
+                .connect()
+                .catch((error) => {
+                    logger.error('Error reconnecting websocket:', error);
+                    setErrorMessage('Connection lost. Please try starting again.');
+                    setHasStarted(false);
+                    setStatus('idle');
+                });
+        }
+    }, [isTimeUp, hasStarted, geminiSession]);
 
     const handleStartTalking = useCallback(async () => {
         try {

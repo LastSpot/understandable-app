@@ -2,6 +2,8 @@
 
 import { GoogleGenAI, Modality } from '@google/genai';
 
+import { GEMINI_SYSTEM_INSTRUCTION } from '@/services/gemini/geminiConfig';
+
 export async function getGeminiLiveToken() {
     const apiKey = process.env.GEMINI_KEY;
     if (!apiKey) {
@@ -21,6 +23,9 @@ export async function getGeminiLiveToken() {
                 config: {
                     sessionResumption: {},
                     responseModalities: [Modality.AUDIO],
+                    systemInstruction: GEMINI_SYSTEM_INSTRUCTION,
+                    // Temporarily removing speechConfig to test if it's causing issues
+                    // speechConfig: GEMINI_CONFIG.speechConfig,
                 },
             },
             httpOptions: {
