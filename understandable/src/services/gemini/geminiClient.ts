@@ -4,7 +4,7 @@ import { logger } from '@/lib/logger';
 import { getGeminiLiveToken } from '@/actions/gemini';
 import { GeminiMessage } from '@/types/gemini';
 
-import { GEMINI_CONFIG } from './geminiConfig';
+import { GEMINI_CONFIG, getGeminiConfig } from './geminiConfig';
 
 export interface GeminiClientCallbacks {
     onOpen?: () => void;
@@ -17,34 +17,35 @@ export class GeminiClient {
     private session: Session | null = null;
     private isConnected = false;
 
-    async connect(callbacks: GeminiClientCallbacks): Promise<void> {
+    async connect(callbacks: GeminiClientCallbacks, topic: string = ''): Promise<void> {
         return new Promise((resolve, reject) => {
             this.isConnected = false;
 
-            getGeminiLiveToken()
+            getGeminiLiveToken(topic)
                 .then(({ token }) => {
                     const ai = new GoogleGenAI({
                         apiKey: token,
                         apiVersion: GEMINI_CONFIG.apiVersion,
                     });
 
+                    const geminiConfig = getGeminiConfig(topic);
                     const config = {
-                        responseModalities: [...GEMINI_CONFIG.responseModalities],
-                        systemInstruction: GEMINI_CONFIG.systemInstruction,
-                        temperature: GEMINI_CONFIG.temperature,
-                        interruptionSettings: GEMINI_CONFIG.interruptionSettings,
-                        vadConfig: GEMINI_CONFIG.vadConfig,
-                        speechConfig: GEMINI_CONFIG.speechConfig,
+                        responseModalities: [...geminiConfig.responseModalities],
+                        systemInstruction: geminiConfig.systemInstruction,
+                        temperature: geminiConfig.temperature,
+                        interruptionSettings: geminiConfig.interruptionSettings,
+                        vadConfig: geminiConfig.vadConfig,
+                        speechConfig: geminiConfig.speechConfig,
                     } as Parameters<typeof ai.live.connect>[0]['config'] & {
-                        interruptionSettings: typeof GEMINI_CONFIG.interruptionSettings;
-                        vadConfig: typeof GEMINI_CONFIG.vadConfig;
-                        speechConfig: typeof GEMINI_CONFIG.speechConfig;
+                        interruptionSettings: typeof geminiConfig.interruptionSettings;
+                        vadConfig: typeof geminiConfig.vadConfig;
+                        speechConfig: typeof geminiConfig.speechConfig;
                     };
 
                     logger.debug('Connecting to Gemini Live with config:', {
-                        model: GEMINI_CONFIG.model,
-                        systemInstruction:
-                            GEMINI_CONFIG.systemInstruction.substring(0, 100) + '...',
+                        model: geminiConfig.model,
+                        topic,
+                        systemInstruction: geminiConfig.systemInstruction.substring(0, 100) + '...',
                         temperature: config.temperature,
                         interruptionSettings: config.interruptionSettings,
                         vadConfig: config.vadConfig,
@@ -54,7 +55,7 @@ export class GeminiClient {
 
                     ai.live
                         .connect({
-                            model: GEMINI_CONFIG.model,
+                            model: geminiConfig.model,
                             config,
                             callbacks: {
                                 onopen: () => {

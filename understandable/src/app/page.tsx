@@ -38,23 +38,23 @@ export default function Home() {
 
     return (
         <ErrorBoundary>
-            <main>
-                {!isStarted ? (
-                    <StartView onStart={handleStart} />
-                ) : (
+        <main>
+            {!isStarted ? (
+                <StartView onStart={handleStart} />
+            ) : (
                     <SessionView
                         topic={topic}
                         onEnd={handleEnd}
                         onTimeUp={handleTimeUp}
                         isTimeUp={isTimeUp}
                     />
-                )}
-                <TimeUpModal
-                    open={isTimeUp}
-                    onComplete={handleComplete}
-                    onKeepGoing={handleKeepGoing}
-                />
-            </main>
+            )}
+            <TimeUpModal
+                open={isTimeUp}
+                onComplete={handleComplete}
+                onKeepGoing={handleKeepGoing}
+            />
+        </main>
         </ErrorBoundary>
     );
 }

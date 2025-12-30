@@ -2,9 +2,9 @@
 
 import { GoogleGenAI, Modality } from '@google/genai';
 
-import { GEMINI_SYSTEM_INSTRUCTION } from '@/services/gemini/geminiConfig';
+import { getGeminiConfig } from '@/services/gemini/geminiConfig';
 
-export async function getGeminiLiveToken() {
+export async function getGeminiLiveToken(topic: string = '') {
     const apiKey = process.env.GEMINI_KEY;
     if (!apiKey) {
         throw new Error('Missing API key');
@@ -13,6 +13,8 @@ export async function getGeminiLiveToken() {
     const expireTime = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutes
 
     const client = new GoogleGenAI({ apiKey });
+
+    const geminiConfig = getGeminiConfig(topic);
 
     const token = await client.authTokens.create({
         config: {
@@ -23,9 +25,8 @@ export async function getGeminiLiveToken() {
                 config: {
                     sessionResumption: {},
                     responseModalities: [Modality.AUDIO],
-                    systemInstruction: GEMINI_SYSTEM_INSTRUCTION,
-                    // Temporarily removing speechConfig to test if it's causing issues
-                    // speechConfig: GEMINI_CONFIG.speechConfig,
+                    systemInstruction: geminiConfig.systemInstruction,
+                    speechConfig: geminiConfig.speechConfig,
                 },
             },
             httpOptions: {

@@ -2,7 +2,10 @@ import { Modality } from '@google/genai';
 
 import { GEMINI_CONSTANTS } from '@/lib/constants';
 
-export const GEMINI_SYSTEM_INSTRUCTION = `You are a curious middle school student with common knowledge. Your goal is to help the user explain things more clearly by asking detailed questions when their explanation is unclear, confusing, or uses jargon.
+export function getSystemInstruction(topic: string): string {
+    return `You are a curious middle school student with common knowledge. Your goal is to help the user explain things more clearly by asking detailed questions when their explanation is unclear, confusing, or uses jargon.
+
+CONTEXT: The user is trying to explain: "${topic}"
 
 RULES:
 1. INTERRUPT when the explanation is unclear, confusing, or uses technical jargon without explanation. Ask detailed questions like "What do you mean by [term]?" or "Can you explain how that works?"
@@ -15,26 +18,35 @@ RULES:
 8. Ask follow-up questions to dig deeper. Don't accept surface-level explanations.
 
 Only say "Okay" if their explanation is completely clear, detailed, and you have no questions at all. Most explanations need clarification, so ask questions instead.`;
+}
 
-export const GEMINI_CONFIG = {
-    model: GEMINI_CONSTANTS.MODEL,
-    systemInstruction: GEMINI_SYSTEM_INSTRUCTION,
-    responseModalities: [Modality.AUDIO] as const,
-    apiVersion: GEMINI_CONSTANTS.API_VERSION,
-    temperature: 0.2,
-    interruptionSettings: {
-        mode: 'ALWAYS_INTERRUPT' as const,
-    },
-    vadConfig: {
-        silenceDurationThreshold: 50, // Milliseconds of silence before considering speech ended (lower = faster detection)
-        responseDelay: 5, // Milliseconds to wait before responding after speech ends (0 = immediate)
-    },
-    speechConfig: {
-        languageCode: 'en-US',
-        voiceConfig: {
-            prebuiltVoiceConfig: {
-                voiceName: 'Autonoe',
+// Default instruction for backwards compatibility (used when topic is not available)
+export const GEMINI_SYSTEM_INSTRUCTION = getSystemInstruction('');
+
+export function getGeminiConfig(topic: string = '') {
+    return {
+        model: GEMINI_CONSTANTS.MODEL,
+        systemInstruction: getSystemInstruction(topic),
+        responseModalities: [Modality.AUDIO] as const,
+        apiVersion: GEMINI_CONSTANTS.API_VERSION,
+        temperature: 0.2,
+        interruptionSettings: {
+            mode: 'ALWAYS_INTERRUPT' as const,
+        },
+        vadConfig: {
+            silenceDurationThreshold: 50, // Milliseconds of silence before considering speech ended (lower = faster detection)
+            responseDelay: 5, // Milliseconds to wait before responding after speech ends (0 = immediate)
+        },
+        speechConfig: {
+            languageCode: 'en-US',
+            voiceConfig: {
+                prebuiltVoiceConfig: {
+                    voiceName: 'Autonoe',
+                },
             },
         },
-    },
-} as const;
+    } as const;
+}
+
+// Default config for backwards compatibility
+export const GEMINI_CONFIG = getGeminiConfig('');

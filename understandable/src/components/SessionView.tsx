@@ -84,23 +84,21 @@ export function SessionView({ topic, onEnd, onTimeUp, isTimeUp }: SessionViewPro
     useEffect(() => {
         if (!isTimeUp && hasStarted && !geminiSession.isConnected) {
             logger.debug('Reconnecting websocket after timer reset');
-            geminiSession
-                .connect()
-                .catch((error) => {
-                    logger.error('Error reconnecting websocket:', error);
-                    setErrorMessage('Connection lost. Please try starting again.');
-                    setHasStarted(false);
-                    setStatus('idle');
-                });
+            geminiSession.connect(topic).catch((error) => {
+                logger.error('Error reconnecting websocket:', error);
+                setErrorMessage('Connection lost. Please try starting again.');
+                setHasStarted(false);
+                setStatus('idle');
+            });
         }
-    }, [isTimeUp, hasStarted, geminiSession]);
+    }, [isTimeUp, hasStarted, geminiSession, topic]);
 
     const handleStartTalking = useCallback(async () => {
         try {
             setStatus('requesting');
             setErrorMessage(null);
             await audioSession.startRecording();
-            await geminiSession.connect();
+            await geminiSession.connect(topic);
             setHasStarted(true);
             setStatus('listening');
         } catch (error) {
@@ -125,7 +123,7 @@ export function SessionView({ topic, onEnd, onTimeUp, isTimeUp }: SessionViewPro
                 setErrorMessage('Unable to start session. Please try again.');
             }
         }
-    }, [audioSession, geminiSession]);
+    }, [audioSession, geminiSession, topic]);
 
     const handleEndSession = useCallback(async () => {
         try {
